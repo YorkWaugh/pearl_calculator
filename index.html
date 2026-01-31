@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pearl Cannon Calculator</title>
+    <style>
+        :root {
+            --bg-color: #f4f4f9;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --accent-color: #007bff;
+            --accent-hover: #0056b3;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --border-color: #dddddd;
+            --input-bg: #ffffff;
+            --th-bg: #f8f9fa;
+            --footer-text: #888888;
+            --highlight-bg: #e3f2fd;
+            --trace-highlight: rgba(0, 123, 255, 0.2);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent-color: #4da3ff;
+            --accent-hover: #1a7fd9;
+            --danger-color: #ff4d4d;
+            --success-color: #4caf50;
+            --border-color: #333333;
+            --input-bg: #2c2c2c;
+            --th-bg: #252525;
+            --footer-text: #666666;
+            --highlight-bg: #1a3c5e;
+            --trace-highlight: rgba(77, 163, 255, 0.3);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+            flex: 1;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .controls button {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 1rem;
+            min-width: 40px;
+        }
+
+        #themeBtn {
+            font-size: 1.2rem;
+            line-height: 1;
+            border: none;
+        }
+
+        #themeBtn:hover {
+            background-color: rgba(128, 128, 128, 0.1);
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            box-sizing: border-box;
+            height: 38px;
+        }
+
+        /* Feature Bar (History/Presets) */
+        .feature-bar {
+            background-color: var(--highlight-bg);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .feature-bar select {
+            flex: 2;
+            min-width: 150px;
+        }
+
+        .feature-bar button {
+            flex: 1;
+            min-width: 60px;
+        }
+
+        /* Buttons */
+        button.primary {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+            margin-top: 10px;
+            transition: background-color 0.2s;
+        }
+
+        button.primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        button.sm-btn {
+            padding: 0 10px;
+            height: 38px;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        button.sm-btn:hover {
+            background-color: rgba(128, 128, 128, 0.1);
+        }
+
+        button.btn-success {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+        }
+
+        button.btn-success:hover {
+            filter: brightness(0.9);
+        }
+
+        button.btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+        }
+
+        button.btn-danger:hover {
+            filter: brightness(0.9);
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        th {
+            background-color: var(--th-bg);
+            position: sticky;
+            top: 0;
+        }
+
+        .collapsible-header {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .explanation {
+            font-size: 0.9rem;
+            color: var(--footer-text);
+            line-height: 1.6;
+        }
+
+        .explanation p {
+            margin-bottom: 10px;
+        }
+
+        .explanation strong {
+            color: var(--text-color);
+        }
+
+        .explanation ul {
+            padding-left: 20px;
+            margin: 5px 0 15px 0;
+        }
+
+        .explanation li {
+            margin-bottom: 4px;
+        }
+
+        .explanation a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        .explanation a:hover {
+            text-decoration: underline;
+        }
+
+        /* Utility for math display */
+        .math-var {
+            font-family: "Times New Roman", Times, serif;
+            font-style: italic;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px 0;
+            color: var(--footer-text);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1 data-i18n="title">Pearl Cannon Calculator</h1>
+            <div class="controls">
+                <button onclick="toggleLang()" id="langBtn">EN</button>
+                <button onclick="toggleTheme()" id="themeBtn">☀</button>
+            </div>
+        </header>
+
+        <div class="card">
+            <h3 data-i18n="target_title">Target Coordinates</h3>
+
+            <div class="feature-bar">
+                <select id="targetHistorySelect" onchange="loadTargetHistory()">
+                    <option value="" data-i18n="select_history">-- Recent Targets --</option>
+                </select>
+            </div>
+
+            <div class="grid">
+                <div class="form-group">
+                    <label data-i18n="target_x">Target X</label>
+                    <input type="number" id="target_x" placeholder="e.g. 3040">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="target_z">Target Z</label>
+                    <input type="number" id="target_z" placeholder="e.g. -100">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="max_tnt">Max TNT (One Side)</label>
+                    <input type="number" id="max_tnt" value="800">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="threshold">Max Error</label>
+                    <input type="number" id="threshold" value="10">
+                </div>
+            </div>
+            <button class="primary" onclick="calculate()" data-i18n="calc_btn">Calculate</button>
+        </div>
+
+        <div class="card">
+            <div class="collapsible-header" onclick="toggleSection('configContent')">
+                <span data-i18n="config_title">Cannon Configuration</span>
+                <span>▼</span>
+            </div>
+            <div id="configContent" style="margin-top: 15px;">
+
+                <div class="feature-bar">
+                    <select id="configProfileSelect" onchange="loadConfigProfile()">
+                        <option value="" data-i18n="select_config">-- Select Preset --</option>
+                    </select>
+                    <button class="sm-btn btn-success" onclick="saveConfigProfile()" data-i18n="btn_save">Save</button>
+                    <button class="sm-btn btn-danger" onclick="deleteConfigProfile()"
+                        data-i18n="btn_delete">Del</button>
+                </div>
+
+                <div class="grid">
+                    <div class="form-group">
+                        <label data-i18n="cfg_sx">Start X (s[0])</label>
+                        <input type="number" id="s_x">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="cfg_sy">Start Y (s[1])</label>
+                        <input type="number" id="s_y">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="cfg_sz">Start Z (s[2])</label>
+                        <input type="number" id="s_z">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="cfg_exp_y">Explosion Centre Y</label>
+                        <input type="number" id="exp_y">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="cfg_vy">vy (Initial Velocity)</label>
+                        <input type="number" id="vy">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="cfg_ds">ds (Offset)</label>
+                        <input type="number" id="ds">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 data-i18n="results_title">Results</h3>
+            <div class="table-container">
+                <table id="resultTable">
+                    <thead>
+                        <tr>
+                            <th data-i18n="res_dir">Direction</th>
+                            <th data-i18n="res_blue">Blue (m)</th>
+                            <th data-i18n="res_red">Red (n)</th>
+                            <th data-i18n="res_total">Total</th>
+                            <th data-i18n="res_ticks">Ticks</th>
+                            <th data-i18n="res_error">Error</th>
+                            <th data-i18n="res_action">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="7" style="text-align:center" data-i18n="waiting">Waiting for input...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card hidden" id="traceCard">
+            <div class="collapsible-header">
+                <span id="traceTitle">Trajectory Details</span>
+                <button class="sm-btn" onclick="document.getElementById('traceCard').classList.add('hidden')">✕</button>
+            </div>
+            <div class="table-container" style="margin-top:15px;">
+                <table id="traceTable">
+                    <thead>
+                        <tr>
+                            <th>Tick</th>
+                            <th>X</th>
+                            <th>Y</th>
+                            <th>Z</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="collapsible-header" onclick="toggleSection('descContent')">
+                <span data-i18n="about_title">Usage & Documentation</span>
+                <span>▼</span>
+            </div>
+            <div id="descContent" class="explanation hidden" style="margin-top: 15px;">
+                <div data-i18n="about_text_html">
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            &copy; 2026 Gao Yun
+        </footer>
+    </div>
+
+    <script>
+        // --- i18n Configuration ---
+        const i18n = {
+            en: {
+                title: "Pearl Cannon Calculator",
+                about_title: "Usage & Documentation",
+                about_text_html: `
+                <p><strong>Compatibility:</strong> Minecraft 1.21.2+</p>
+                <p>Core Function: Designed for pre-aligned (zero-offset) pearl cannons. Calculates optimal TNT configuration (Blue/Red) and simulates trajectory.</p>
+                <p>Cannon Config:</p>
+                <ul>
+                    <li>Start Pos (<span class="math-var">S</span>): Pearl coordinates (<span class="math-var">X<sub>0</sub>, Y<sub>0</sub>, Z<sub>0</sub></span>) at explosion tick.</li>
+                    <li><span class="math-var">vy</span>: Initial vertical velocity (1 tick before explosion).</li>
+                    <li>Explosion Y: Y-level of TNT center (typically Base + 0.06125).</li>
+                    <li><span class="math-var">ds</span>: Perpendicular distance from TNT center to pearl axis.</li>
+                </ul>
+                <p>Calculation Inputs:</p>
+                <ul>
+                    <li>Target: Destination (<span class="math-var">X, Z</span>) coordinates.</li>
+                    <li>Constraints: Max TNT limit (per side) and Max Allowable Error.</li>
+                </ul>
+                <p>Usage: Enter target coordinates and constraints. Click <em>Calculate</em> to see solutions. Use <em>Show Trace</em> to inspect flight path (closest point is highlighted).</p>
+                <hr>
+                <p><strong>References:</strong></p>
+                <ul>
+                    <li><a href="https://github.com/LegendsOfSky/PearlCalculatorCore" target="_blank">PearlCalculatorCore (GitHub)</a></li>
+                    <li><a href="https://minecraft.wiki/w/Entity" target="_blank">Minecraft Wiki: Entity</a></li>
+                    <li><a href="https://www.bilibili.com/video/BV1yDYienExm/" target="_blank">Bilibili: BV1yDYienExm</a></li>
+                </ul>
+            `,
+                config_title: "Cannon Configuration",
+                target_title: "Target Coordinates",
+                select_config: "-- Select Preset --",
+                select_history: "-- Recent Targets --",
+                btn_save: "Save",
+                btn_delete: "Del",
+                target_x: "Target X",
+                target_z: "Target Z",
+                max_tnt: "Max TNT",
+                threshold: "Max Error",
+                calc_btn: "Calculate",
+                results_title: "Results",
+                res_dir: "Direction",
+                res_blue: "Blue (m)",
+                res_red: "Red (n)",
+                res_total: "Total",
+                res_ticks: "Ticks",
+                res_error: "Error",
+                res_action: "Action",
+                res_show_trace: "Show Trace",
+                trace_title: "Trajectory Details (m={m}, n={n})",
+                waiting: "Waiting for input...",
+                no_result: "No solution found within constraints.",
+                west: "West", south: "South", north: "North", east: "East",
+                prompt_name: "Enter a name for this configuration:",
+                msg_saved: "Saved!",
+                msg_deleted: "Deleted!",
+                cfg_sx: "Start X (s[0])",
+                cfg_sy: "Start Y (s[1])",
+                cfg_sz: "Start Z (s[2])",
+                cfg_exp_y: "Explosion Centre Y",
+                cfg_vy: "vy (Initial Velocity)",
+                cfg_ds: "ds (Offset)"
+            },
+            zh: {
+                title: "珍珠炮计算器",
+                about_title: "使用说明与文档",
+                about_text_html: `
+                <p><strong>适用版本：</strong> Minecraft 1.21.2+</p>
+                <p>核心功能：专为经对齐矫正（无偏移）的珍珠炮设计。提供最佳 TNT 配比（蓝/红）计算及弹道模拟。</p>
+                <p>大炮参数配置：</p>
+                <ul>
+                    <li>起爆坐标 (<span class="math-var">S</span>)： TNT 起爆瞬间珍珠的 (<span class="math-var">X<sub>0</sub>, Y<sub>0</sub>, Z<sub>0</sub></span>) 坐标。</li>
+                    <li>初始垂速 (<span class="math-var">vy</span>)： 起爆前一刻 (tick) 的 Y 轴初始速度。</li>
+                    <li>爆炸中心 (<span class="math-var">Y<sub>exp</sub></span>)： TNT 爆炸点高度 (通常为 TNT 底部 + 0.06125)。</li>
+                    <li>偏移距离 (<span class="math-var">ds</span>)： TNT 中心距珍珠轴线 (X 轴或 Z 轴) 的垂直距离。</li>
+                </ul>
+                <p>计算输入：</p>
+                <ul>
+                    <li>目标： 输入目的地的 (<span class="math-var">X, Z</span>) 坐标。</li>
+                    <li>限制条件： 设定单侧最大 TNT 数量及允许的最大误差。</li>
+                </ul>
+                <p>使用方法： 输入目标坐标与限制条件，点击<em>计算</em>筛选方案。点击<em>查看轨迹</em>可追踪详细路径（最佳落点高亮显示）。</p>
+                <hr>
+                <p><strong>参考资料：</strong></p>
+                <ul>
+                    <li><a href="https://github.com/LegendsOfSky/PearlCalculatorCore" target="_blank">PearlCalculatorCore (GitHub)</a></li>
+                    <li><a href="https://minecraft.wiki/w/Entity" target="_blank">Minecraft Wiki: Entity</a></li>
+                    <li><a href="https://www.bilibili.com/video/BV1yDYienExm/" target="_blank">Bilibili: BV1yDYienExm</a></li>
+                </ul>
+            `,
+                config_title: "大炮配置",
+                target_title: "目标坐标",
+                select_config: "-- 选择配置预设 --",
+                select_history: "-- 最近目标历史 --",
+                btn_save: "保存",
+                btn_delete: "删除",
+                target_x: "目标 X",
+                target_z: "目标 Z",
+                max_tnt: "最大TNT",
+                threshold: "允许误差",
+                calc_btn: "计算",
+                results_title: "计算结果",
+                res_dir: "方向",
+                res_blue: "蓝 (m)",
+                res_red: "红 (n)",
+                res_total: "总计",
+                res_ticks: "Tick数",
+                res_error: "误差",
+                res_action: "操作",
+                res_show_trace: "查看轨迹",
+                trace_title: "轨迹详情 (m={m}, n={n})",
+                waiting: "等待输入...",
+                no_result: "在限制条件下未找到可行方案。",
+                west: "西", south: "南", north: "北", east: "东",
+                prompt_name: "请输入配置名称:",
+                msg_saved: "已保存！",
+                msg_deleted: "已删除！",
+                cfg_sx: "起爆 X (s[0])",
+                cfg_sy: "起爆 Y (s[1])",
+                cfg_sz: "起爆 Z (s[2])",
+                cfg_exp_y: "爆炸中心 Y",
+                cfg_vy: "vy (初始垂速)",
+                cfg_ds: "ds (偏移距离)"
+            }
+        };
+
+        /**
+         * Determines the UI language.
+         * Logic: Simplified Chinese (zh-CN or zh) -> 'zh'. 
+         * All others (en, zh-TW, zh-HK, etc.) -> 'en'.
+         */
+        function getBrowserLanguage() {
+            const lang = (navigator.language || navigator.userLanguage).toLowerCase();
+            if (lang === 'zh-cn' || lang === 'zh') {
+                return 'zh';
+            }
+            return 'en';
+        }
+
+        let currentLang = getBrowserLanguage();
+
+        // --- Local Storage Constants ---
+        const KEY_CONFIGS = 'pearl_saved_configs';
+        const KEY_TARGETS = 'pearl_target_history';
+
+        // --- Config Presets Logic (Manual Save/Load) ---
+        function getStoredConfigs() {
+            const data = localStorage.getItem(KEY_CONFIGS);
+            return data ? JSON.parse(data) : {};
+        }
+
+        function saveConfigProfile() {
+            const name = prompt(i18n[currentLang].prompt_name);
+            if (!name) return;
+
+            const configs = getStoredConfigs();
+            configs[name] = {
+                s_x: document.getElementById('s_x').value,
+                s_y: document.getElementById('s_y').value,
+                s_z: document.getElementById('s_z').value,
+                exp_y: document.getElementById('exp_y').value,
+                vy: document.getElementById('vy').value,
+                ds: document.getElementById('ds').value
+            };
+            localStorage.setItem(KEY_CONFIGS, JSON.stringify(configs));
+            refreshConfigDropdown(name);
+            alert(i18n[currentLang].msg_saved);
+        }
+
+        function deleteConfigProfile() {
+            const select = document.getElementById('configProfileSelect');
+            const name = select.value;
+            if (!name) return;
+
+            const configs = getStoredConfigs();
+            delete configs[name];
+            localStorage.setItem(KEY_CONFIGS, JSON.stringify(configs));
+            refreshConfigDropdown();
+            alert(i18n[currentLang].msg_deleted);
+        }
+
+        function loadConfigProfile() {
+            const name = document.getElementById('configProfileSelect').value;
+            if (!name) return;
+            const configs = getStoredConfigs();
+            const data = configs[name];
+            if (data) {
+                document.getElementById('s_x').value = data.s_x;
+                document.getElementById('s_y').value = data.s_y;
+                document.getElementById('s_z').value = data.s_z;
+                document.getElementById('exp_y').value = data.exp_y;
+                document.getElementById('vy').value = data.vy;
+                document.getElementById('ds').value = data.ds;
+            }
+        }
+
+        function refreshConfigDropdown(selectedName = null) {
+            const configs = getStoredConfigs();
+            const select = document.getElementById('configProfileSelect');
+            select.innerHTML = `<option value="">${i18n[currentLang].select_config}</option>`;
+
+            Object.keys(configs).forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                select.appendChild(option);
+            });
+
+            if (selectedName) select.value = selectedName;
+        }
+
+        // --- Target History Logic (Auto Save on Calculate) ---
+        function getTargetHistory() {
+            const data = localStorage.getItem(KEY_TARGETS);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveTargetToHistory(tx, tz, maxTnt, th) {
+            let history = getTargetHistory();
+            const newEntry = { x: tx, z: tz, max: maxTnt, th: th, time: Date.now() };
+
+            // Deduplicate: Check if most recent is identical
+            if (history.length > 0) {
+                const last = history[0];
+                if (last.x === tx && last.z === tz && last.max === maxTnt && last.th === th) {
+                    return;
+                }
+            }
+
+            history.unshift(newEntry);
+            if (history.length > 5) history = history.slice(0, 5); // Keep last 5
+            localStorage.setItem(KEY_TARGETS, JSON.stringify(history));
+            refreshTargetDropdown();
+        }
+
+        function loadTargetHistory() {
+            const index = document.getElementById('targetHistorySelect').value;
+            if (index === "") return;
+
+            const history = getTargetHistory();
+            const item = history[index];
+            if (item) {
+                document.getElementById('target_x').value = item.x;
+                document.getElementById('target_z').value = item.z;
+                document.getElementById('max_tnt').value = item.max;
+                document.getElementById('threshold').value = item.th;
+            }
+        }
+
+        function refreshTargetDropdown() {
+            const history = getTargetHistory();
+            const select = document.getElementById('targetHistorySelect');
+            select.innerHTML = `<option value="">${i18n[currentLang].select_history}</option>`;
+
+            history.forEach((item, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                const dateStr = new Date(item.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                option.textContent = `[${dateStr}] X:${item.x}, Z:${item.z}`;
+                select.appendChild(option);
+            });
+        }
+
+        // --- Core Algorithms ---
+
+        function directionDecode(direction) {
+            if (direction === 0) return { vec: [-1, -1, 1, -1], labelKey: 'west' };
+            if (direction === 1) return { vec: [-1, 1, 1, 1], labelKey: 'south' };
+            if (direction === 2) return { vec: [-1, 1, -1, -1], labelKey: 'north' };
+            if (direction === 3) return { vec: [1, 1, 1, -1], labelKey: 'east' };
+            return null;
+        }
+
+        function pearlCal(m, n, direction, ds, explosionCentre, s, vy, maxTick) {
+            const a = -0.03;
+            const f = 0.99;
+            let currentS = [...s];
+            const alpha = -Math.atan((currentS[1] + 0.2125 - explosionCentre) / (Math.sqrt(2) * ds));
+            const dirData = directionDecode(direction);
+            const dirVec = dirData.vec;
+            const v0 = 1 - Math.sqrt(Math.pow(currentS[1] + 0.2125 - explosionCentre, 2) + 2 * Math.pow(ds, 2)) / 8;
+
+            let currentVy = (vy + a) * f - (m + n) * v0 * Math.sin(alpha);
+            let currentVx = (dirVec[0] * m + dirVec[1] * n) / Math.sqrt(2) * v0 * Math.cos(alpha);
+            let currentVz = (dirVec[2] * m + dirVec[3] * n) / Math.sqrt(2) * v0 * Math.cos(alpha);
+
+            const trace = [];
+            for (let t = 0; t < maxTick; t++) {
+                currentVy += a;
+                currentVx *= f;
+                currentVy *= f;
+                currentVz *= f;
+                currentS[0] += currentVx;
+                currentS[1] += currentVy;
+                currentS[2] += currentVz;
+                trace.push([...currentS]);
+            }
+            return trace;
+        }
+
+        function calculate() {
+            const s = [
+                parseFloat(document.getElementById('s_x').value),
+                parseFloat(document.getElementById('s_y').value),
+                parseFloat(document.getElementById('s_z').value)
+            ];
+            const explosionCentre = parseFloat(document.getElementById('exp_y').value);
+            const vy = parseFloat(document.getElementById('vy').value);
+            const ds = parseFloat(document.getElementById('ds').value);
+            const tx = parseFloat(document.getElementById('target_x').value);
+            const tz = parseFloat(document.getElementById('target_z').value);
+            const maxTnt = parseInt(document.getElementById('max_tnt').value);
+            const threshold = parseFloat(document.getElementById('threshold').value);
+
+            if (isNaN(tx) || isNaN(tz)) {
+                alert(currentLang === 'zh' ? "请输入有效的目标坐标" : "Please enter valid target coordinates");
+                return;
+            }
+
+            // Auto Save Target History
+            saveTargetToHistory(tx, tz, maxTnt, threshold);
+
+            const x0 = s[0];
+            const z0 = s[2];
+            let theta = -Math.atan2(tx - x0, tz - z0);
+            if (theta < 0) theta += 2 * Math.PI;
+
+            let direction;
+            if (theta >= Math.PI / 4 && theta < 3 * Math.PI / 4) direction = 0;
+            else if (theta >= 3 * Math.PI / 4 && theta < 5 * Math.PI / 4) direction = 2;
+            else if (theta >= 5 * Math.PI / 4 && theta < 7 * Math.PI / 4) direction = 3;
+            else direction = 1;
+
+            const dirData = directionDecode(direction);
+            const dirVec = dirData.vec;
+            const results = [];
+
+            for (let i = 10; i <= maxTnt; i++) {
+                let n = Math.round(-(dirVec[0] + dirVec[2] * Math.tan(theta)) / (dirVec[1] + Math.tan(theta) * dirVec[3]) * i);
+                if (n < 0) continue;
+                else if (n <= maxTnt) {
+                    const trace = pearlCal(i, n, direction, ds, explosionCentre, s, vy, 101);
+                    let minDeviation = Math.sqrt(Math.pow(x0 - tx, 2) + Math.pow(z0 - tz, 2));
+                    let bestTime = 0;
+
+                    for (let t = 0; t < trace.length; t++) {
+                        const deviation = Math.sqrt(Math.pow(trace[t][0] - tx, 2) + Math.pow(trace[t][2] - tz, 2));
+                        if (deviation <= minDeviation) {
+                            minDeviation = deviation;
+                            bestTime = t + 1;
+                        } else {
+                            break;
+                        }
+                    }
+
+                    if (minDeviation <= threshold) {
+                        results.push({
+                            deviation: minDeviation,
+                            time: bestTime,
+                            m: i,
+                            n: n,
+                            total: i + n,
+                            dirKey: dirData.labelKey,
+                            direction: direction
+                        });
+                    }
+                } else break;
+            }
+            renderResults(results);
+        }
+
+        function renderResults(results) {
+            const tbody = document.querySelector('#resultTable tbody');
+            tbody.innerHTML = '';
+
+            if (results.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center">${i18n[currentLang].no_result}</td></tr>`;
+                return;
+            }
+
+            results.sort((a, b) => a.deviation - b.deviation);
+
+            results.forEach(r => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                <td>${i18n[currentLang][r.dirKey]}</td>
+                <td>${r.m}</td>
+                <td>${r.n}</td>
+                <td>${r.total}</td>
+                <td>${r.time}</td>
+                <td>${r.deviation.toFixed(2)}</td>
+                <td><button class="sm-btn" onclick="showTrace(${r.m}, ${r.n}, ${r.direction}, ${r.time})">${i18n[currentLang].res_show_trace}</button></td>
+            `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function showTrace(m, n, direction, bestTime) {
+            const s = [
+                parseFloat(document.getElementById('s_x').value),
+                parseFloat(document.getElementById('s_y').value),
+                parseFloat(document.getElementById('s_z').value)
+            ];
+            const explosionCentre = parseFloat(document.getElementById('exp_y').value);
+            const vy = parseFloat(document.getElementById('vy').value);
+            const ds = parseFloat(document.getElementById('ds').value);
+
+            const trace = pearlCal(m, n, direction, ds, explosionCentre, s, vy, bestTime + 10);
+
+            const card = document.getElementById('traceCard');
+            card.classList.remove('hidden');
+            document.getElementById('traceTitle').innerText = i18n[currentLang].trace_title.replace('{m}', m).replace('{n}', n);
+
+            const tbody = document.querySelector('#traceTable tbody');
+            tbody.innerHTML = '';
+
+            trace.forEach((pos, index) => {
+                const tick = index + 1;
+                const tr = document.createElement('tr');
+                if (tick === bestTime) {
+                    tr.style.backgroundColor = 'var(--trace-highlight)';
+                    tr.style.fontWeight = 'bold';
+                }
+                tr.innerHTML = `
+                <td>${tick}</td>
+                <td>${pos[0].toFixed(3)}</td>
+                <td>${pos[1].toFixed(3)}</td>
+                <td>${pos[2].toFixed(3)}</td>
+            `;
+                tbody.appendChild(tr);
+            });
+            card.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- UI Logic ---
+
+        function updateLabels() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[currentLang][key]) {
+                    // If the key is for HTML content (about section), use innerHTML
+                    if (key === 'about_text_html') {
+                        el.innerHTML = i18n[currentLang][key];
+                    } else {
+                        el.innerText = i18n[currentLang][key];
+                    }
+                }
+            });
+
+            document.getElementById('langBtn').innerText = currentLang === 'zh' ? '中文' : 'EN';
+
+            refreshConfigDropdown();
+            refreshTargetDropdown();
+        }
+
+        function toggleLang() {
+            currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            updateLabels();
+        }
+
+        function updateThemeIcon(theme) {
+            const btn = document.getElementById('themeBtn');
+            btn.innerText = theme === 'dark' ? '☾' : '☀';
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            body.setAttribute('data-theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+
+        function toggleSection(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('hidden');
+        }
+
+        // --- Initialization ---
+        let startTheme = 'light';
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            startTheme = 'dark';
+        }
+        document.body.setAttribute('data-theme', startTheme);
+        updateThemeIcon(startTheme);
+
+        updateLabels();
+
+    </script>
+
+</body>
+
+</html>
