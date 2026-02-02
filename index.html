@@ -753,7 +753,7 @@
             }
 
             history.unshift(newEntry);
-            if (history.length > 5) history = history.slice(0, 5); // Keep last 5
+            if (history.length > 10) history = history.slice(0, 10); // Keep last 10
             localStorage.setItem(KEY_TARGETS, JSON.stringify(history));
             refreshTargetDropdown();
         }
@@ -782,7 +782,7 @@
                 const option = document.createElement('option');
                 option.value = index;
                 const dateStr = new Date(item.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                option.textContent = `[${dateStr}] X:${item.x}, Z:${item.z}`;
+                option.textContent = `[X:${item.x}, Z:${item.z}, TNT:${item.max}, Err:${item.th}]`;
                 select.appendChild(option);
             });
         }
