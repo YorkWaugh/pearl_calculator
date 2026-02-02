@@ -606,6 +606,9 @@
             key: 'deviation', // Default sort by Error (deviation)
             order: 'asc'      // Default ascending
         };
+        // Fix: Add state variables to track calculation and trace status
+        let hasCalculated = false;
+        let currentTraceParams = null;
 
         // --- Local Storage Constants ---
         const KEY_CONFIGS = 'pearl_saved_configs';
@@ -822,6 +825,9 @@
         }
 
         function calculate() {
+            // Fix: Mark as calculated so we know to refresh table on lang change
+            hasCalculated = true;
+
             const s = [
                 parseFloat(document.getElementById('s_x').value),
                 parseFloat(document.getElementById('s_y').value),
@@ -961,6 +967,9 @@
         }
 
         function showTrace(m, n, direction, bestTime) {
+            // Fix: Capture current trace params to update title on lang change
+            currentTraceParams = { m, n };
+
             const s = [
                 parseFloat(document.getElementById('s_x').value),
                 parseFloat(document.getElementById('s_y').value),
@@ -1026,6 +1035,18 @@
             refreshConfigDropdown();
             refreshTargetDropdown();
             updateSortIcons();
+
+            // Fix: Re-render results table if calculation exists to update dynamic button text
+            if (hasCalculated) {
+                renderResults();
+            }
+
+            // Fix: Update trace title if it is currently visible
+            if (currentTraceParams && !document.getElementById('traceCard').classList.contains('hidden')) {
+                document.getElementById('traceTitle').innerText = i18n[currentLang].trace_title
+                    .replace('{m}', currentTraceParams.m)
+                    .replace('{n}', currentTraceParams.n);
+            }
         }
 
         function toggleLang() {
