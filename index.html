@@ -235,6 +235,16 @@
             top: 0;
         }
 
+        /* Sorting styles */
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        th.sortable:hover {
+            filter: brightness(0.9);
+        }
+
         .collapsible-header {
             cursor: pointer;
             display: flex;
@@ -326,27 +336,27 @@
                 <div class="grid">
                     <div class="form-group">
                         <label data-i18n="cfg_sx">Start X (s[0])</label>
-                        <input type="number" id="s_x">
+                        <input type="number" id="s_x" class="state-input">
                     </div>
                     <div class="form-group">
                         <label data-i18n="cfg_sy">Start Y (s[1])</label>
-                        <input type="number" id="s_y">
+                        <input type="number" id="s_y" class="state-input">
                     </div>
                     <div class="form-group">
                         <label data-i18n="cfg_sz">Start Z (s[2])</label>
-                        <input type="number" id="s_z">
+                        <input type="number" id="s_z" class="state-input">
                     </div>
                     <div class="form-group">
                         <label data-i18n="cfg_vy">vy (Initial Velocity)</label>
-                        <input type="number" id="vy">
+                        <input type="number" id="vy" class="state-input">
                     </div>
                     <div class="form-group">
                         <label data-i18n="cfg_exp_y">Explosion Centre Y</label>
-                        <input type="number" id="exp_y">
+                        <input type="number" id="exp_y" class="state-input">
                     </div>
                     <div class="form-group">
                         <label data-i18n="cfg_ds">ds (Offset)</label>
-                        <input type="number" id="ds" value="0.836095">
+                        <input type="number" id="ds" value="0.836095" class="state-input">
                     </div>
                 </div>
             </div>
@@ -364,19 +374,19 @@
             <div class="grid">
                 <div class="form-group">
                     <label data-i18n="target_x">Target X</label>
-                    <input type="number" id="target_x">
+                    <input type="number" id="target_x" class="state-input">
                 </div>
                 <div class="form-group">
                     <label data-i18n="target_z">Target Z</label>
-                    <input type="number" id="target_z">
+                    <input type="number" id="target_z" class="state-input">
                 </div>
                 <div class="form-group">
                     <label data-i18n="max_tnt">Max TNT (One Side)</label>
-                    <input type="number" id="max_tnt">
+                    <input type="number" id="max_tnt" class="state-input">
                 </div>
                 <div class="form-group">
                     <label data-i18n="threshold">Max Error</label>
-                    <input type="number" id="threshold" value="10">
+                    <input type="number" id="threshold" value="10" class="state-input">
                 </div>
             </div>
             <button class="primary" onclick="calculate()" data-i18n="calc_btn">Calculate</button>
@@ -391,9 +401,9 @@
                             <th data-i18n="res_dir">Direction</th>
                             <th data-i18n="res_blue">Blue (m)</th>
                             <th data-i18n="res_red">Red (n)</th>
-                            <th data-i18n="res_total">Total</th>
-                            <th data-i18n="res_ticks">Ticks</th>
-                            <th data-i18n="res_error">Error</th>
+                            <th data-i18n="res_total" class="sortable" onclick="toggleSort('total')">Total</th>
+                            <th data-i18n="res_ticks" class="sortable" onclick="toggleSort('time')">Ticks</th>
+                            <th data-i18n="res_error" class="sortable" onclick="toggleSort('deviation')">Error</th>
                             <th data-i18n="res_action">Action</th>
                         </tr>
                     </thead>
@@ -589,11 +599,70 @@
             return 'en';
         }
 
+        // --- Global Variables ---
         let currentLang = getBrowserLanguage();
+        let globalResults = []; // Stores calculation results for re-sorting
+        let sortState = {
+            key: 'deviation', // Default sort by Error (deviation)
+            order: 'asc'      // Default ascending
+        };
 
         // --- Local Storage Constants ---
         const KEY_CONFIGS = 'pearl_saved_configs';
         const KEY_TARGETS = 'pearl_target_history';
+        const KEY_APP_STATE = 'pearl_app_state'; // New: for autosaving state
+
+        // --- Auto Save/Load Logic ---
+
+        function saveAppState() {
+            const state = {
+                lang: currentLang,
+                theme: document.body.getAttribute('data-theme'),
+                inputs: {
+                    s_x: document.getElementById('s_x').value,
+                    s_y: document.getElementById('s_y').value,
+                    s_z: document.getElementById('s_z').value,
+                    vy: document.getElementById('vy').value,
+                    exp_y: document.getElementById('exp_y').value,
+                    ds: document.getElementById('ds').value,
+                    target_x: document.getElementById('target_x').value,
+                    target_z: document.getElementById('target_z').value,
+                    max_tnt: document.getElementById('max_tnt').value,
+                    threshold: document.getElementById('threshold').value
+                }
+            };
+            localStorage.setItem(KEY_APP_STATE, JSON.stringify(state));
+        }
+
+        function loadAppState() {
+            const saved = localStorage.getItem(KEY_APP_STATE);
+            if (!saved) return false;
+
+            try {
+                const state = JSON.parse(saved);
+
+                // Restore Lang
+                if (state.lang) currentLang = state.lang;
+
+                // Restore Theme (Handled in init, but updated here if needed)
+                if (state.theme) {
+                    document.body.setAttribute('data-theme', state.theme);
+                    updateThemeIcon(state.theme);
+                }
+
+                // Restore Inputs
+                if (state.inputs) {
+                    for (const [id, val] of Object.entries(state.inputs)) {
+                        const el = document.getElementById(id);
+                        if (el) el.value = val;
+                    }
+                }
+                return true;
+            } catch (e) {
+                console.error("Failed to load state", e);
+                return false;
+            }
+        }
 
         // --- Config Presets Logic (Manual Save/Load) ---
         function getStoredConfigs() {
@@ -643,6 +712,7 @@
                 document.getElementById('exp_y').value = data.exp_y;
                 document.getElementById('vy').value = data.vy;
                 document.getElementById('ds').value = data.ds;
+                saveAppState(); // Save immediately after loading profile
             }
         }
 
@@ -696,6 +766,7 @@
                 document.getElementById('target_z').value = item.z;
                 document.getElementById('max_tnt').value = item.max;
                 document.getElementById('threshold').value = item.th;
+                saveAppState(); // Save immediately after loading history
             }
         }
 
@@ -771,6 +842,8 @@
 
             // Auto Save Target History
             saveTargetToHistory(tx, tz, maxTnt, threshold);
+            // Ensure inputs are saved too
+            saveAppState();
 
             const x0 = s[0];
             const z0 = s[2];
@@ -818,21 +891,61 @@
                     }
                 } else break;
             }
-            renderResults(results);
+
+            // Save results globally and render
+            globalResults = results;
+            renderResults();
         }
 
-        function renderResults(results) {
+        // --- Sorting Function ---
+        function toggleSort(key) {
+            if (sortState.key === key) {
+                sortState.order = sortState.order === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortState.key = key;
+                sortState.order = 'asc';
+            }
+            renderResults();
+        }
+
+        // --- Helper to update table header icons ---
+        function updateSortIcons() {
+            document.querySelectorAll('th.sortable').forEach(th => {
+                const key = th.getAttribute('data-i18n');
+                if (i18n[currentLang][key]) {
+                    th.innerText = i18n[currentLang][key];
+                }
+            });
+
+            const activeTh = document.querySelector(`th[onclick="toggleSort('${sortState.key}')"]`);
+            if (activeTh) {
+                const arrow = sortState.order === 'asc' ? '▲' : '▼';
+                activeTh.innerHTML += ` <span style="font-weight:bold; font-size:1.1em;">${arrow}</span>`;
+            }
+        }
+
+        function renderResults() {
             const tbody = document.querySelector('#resultTable tbody');
             tbody.innerHTML = '';
 
-            if (results.length === 0) {
+            if (globalResults.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="7" style="text-align:center">${i18n[currentLang].no_result}</td></tr>`;
                 return;
             }
 
-            results.sort((a, b) => a.deviation - b.deviation);
+            // 1. Sort Data
+            globalResults.sort((a, b) => {
+                let valA = a[sortState.key];
+                let valB = b[sortState.key];
+                if (valA === valB) return 0;
+                return sortState.order === 'asc' ? (valA - valB) : (valB - valA);
+            });
 
-            results.forEach(r => {
+            // 2. Update Header Indicators
+            updateSortIcons();
+
+            // 3. Render Rows
+            globalResults.forEach(r => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                 <td>${i18n[currentLang][r.dirKey]}</td>
@@ -866,12 +979,15 @@
             const tbody = document.querySelector('#traceTable tbody');
             tbody.innerHTML = '';
 
+            let highlightedRow = null;
+
             trace.forEach((pos, index) => {
                 const tick = index + 1;
                 const tr = document.createElement('tr');
                 if (tick === bestTime) {
                     tr.style.backgroundColor = 'var(--trace-highlight)';
                     tr.style.fontWeight = 'bold';
+                    highlightedRow = tr;
                 }
                 tr.innerHTML = `
                 <td>${tick}</td>
@@ -881,7 +997,14 @@
             `;
                 tbody.appendChild(tr);
             });
+
             card.scrollIntoView({ behavior: 'smooth' });
+
+            if (highlightedRow) {
+                setTimeout(() => {
+                    highlightedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
         }
 
         // --- UI Logic ---
@@ -890,7 +1013,6 @@
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (i18n[currentLang][key]) {
-                    // If the key is for HTML content (about section), use innerHTML
                     if (key === 'about_text_html') {
                         el.innerHTML = i18n[currentLang][key];
                     } else {
@@ -903,10 +1025,12 @@
 
             refreshConfigDropdown();
             refreshTargetDropdown();
+            updateSortIcons();
         }
 
         function toggleLang() {
             currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            saveAppState(); // Save new language preference
             updateLabels();
         }
 
@@ -921,6 +1045,7 @@
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             body.setAttribute('data-theme', newTheme);
             updateThemeIcon(newTheme);
+            saveAppState(); // Save new theme preference
         }
 
         function toggleSection(id) {
@@ -929,14 +1054,31 @@
         }
 
         // --- Initialization ---
+
+        // 1. Determine Initial Theme (Defaults -> LocalStorage)
         let startTheme = 'light';
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             startTheme = 'dark';
         }
-        document.body.setAttribute('data-theme', startTheme);
-        updateThemeIcon(startTheme);
 
+        // 2. Load State from LocalStorage (Overrides defaults if present)
+        loadAppState();
+
+        // 3. Apply Theme (If loadAppState didn't set it, we use default/matchMedia)
+        if (!document.body.getAttribute('data-theme')) {
+            document.body.setAttribute('data-theme', startTheme);
+            updateThemeIcon(startTheme);
+        }
+
+        // 4. Update UI Texts
         updateLabels();
+
+        // 5. Attach Auto-Save Listeners to Inputs
+        // (Debouncing isn't strictly necessary for localstorage on small data, direct on change/input is fine)
+        document.querySelectorAll('.state-input').forEach(el => {
+            el.addEventListener('input', saveAppState);
+            el.addEventListener('change', saveAppState);
+        });
 
     </script>
 
